@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Axionix Flix – Gestor de Suscripciones</title>
+  <style>
+    .hidden { display: none; }
+    body {
+      margin: 0; padding: 0;
+      background: #EFEFF4;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+                   Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      color: #1C1C1E;
+    }
+    h1 {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 24px;
+      font-weight: 600;
+      color: #000;
+    }
+    .container { padding: 0 16px; }
+    .card {
+      background: #FFFFFF;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #3C3C43;
+    }
+    input, select, button {
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+    input, select {
+      height: 44px;
+      padding: 0 12px;
+      border: 1px solid #C7C7CC;
+      border-radius: 10px;
+      background: #FFFFFF;
+      color: #1C1C1E;
+    }
+    select {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path fill='%23999' d='M6 8L0 0h12z'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+    button {
+      height: 44px;
+      border: none;
+      border-radius: 10px;
+      background-color: #007AFF;
+      color: #FFFFFF;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:active { background-color: #0051A8; }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 1px;
+    }
+    th, td {
+      background: #FFFFFF;
+      padding: 12px;
+      text-align: left;
+      font-size: 16px;
+      color: #1C1C1E;
+      border: none;
+    }
+    th {
+      font-weight: 600;
+      color: #3C3C43;
+      background: transparent;
+      padding-top: 8px;
+      padding-bottom: 4px;
+    }
+    .vencida td { background: rgba(255,59,48,0.1); }
+    .btn-eliminar {
+      background: transparent;
+      color: #FF3B30;
+      padding: 6px;
+      font-size: 14px;
+    }
+    .btn-eliminar:hover {
+      background: rgba(255,59,48,0.1);
+      border-radius: 8px;
+    }
+    #login { max-width: 320px; margin: 80px auto; }
+    #login h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      text-align: center;
+      color: #000;
+    }
+    footer {
+      text-align: center;
+      margin: 32px 0 16px;
+      font-size: 14px;
+      color: #8E8E93;
+    }
+  </style>
+</head>
+<body>
+  <!-- Login -->
+  <div id="login" class="container">
+    <div class="card">
+      <h2>Acceso Restringido</h2>
+      <label for="user">Usuario</label>
+      <input type="text" id="user" placeholder="Usuario" autocomplete="off">
+      <label for="pass">Contraseña</label>
+      <input type="password" id="pass" placeholder="Contraseña" autocomplete="off">
+      <button onclick="login()">Ingresar</button>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div id="main" class="container hidden">
+    <h1>📆 Axionix Flix</h1>
+    <div class="card formulario" autocomplete="off">
+      <label for="cliente">Cliente</label>
+      <input type="text" id="cliente" placeholder="Nombre del cliente" autocomplete="off">
+      
+      <label for="telefono">Número de celular (9 dígitos)</label>
+      <input type="tel" id="telefono" placeholder="912345678" maxlength="9" pattern="[0-9]{9}"
+             title="Debe ingresar 9 dígitos numéricos" autocomplete="off">
+      
+      <label for="plataforma">Plataforma</label>
+      <select id="plataforma" onchange="mostrarCampoPersonalizado()">
+        <option value="ChatGPT">ChatGPT</option>
+        <option value="Disney+">Disney+</option>
+        <option value="HBO Max">HBO Max</option>
+        <option value="YouTube Premium">YouTube Premium</option>
+        <option value="Crunchyroll">Crunchyroll</option>
+        <option value="Otro">Otro...</option>
+      </select>
+      <label for="plataformaCustom" id="labelCustom" style="display:none;">Otra plataforma</label>
+      <input type="text" id="plataformaCustom" placeholder="Escribe plataforma" style="display:none;" autocomplete="off">
+      
+      <label for="fechaVenta">Fecha y hora de entrega</label>
+      <input type="datetime-local" id="fechaVenta">
+      <label for="fechaVencimiento">Fecha y hora de término</label>
+      <input type="datetime-local" id="fechaVencimiento">
+
+      <label for="costo">Costo del plan</label>
+      <input type="number" id="costo" placeholder="S/. 0.00" step="0.01">
+      <label for="ganancia">Ganancia</label>
+      <input type="number" id="ganancia" placeholder="S/. 0.00" step="0.01">
+
+      <button onclick="agregarSuscripcion()">Guardar Suscripción</button>
+    </div>
+    <div class="card tabla">
+      <table id="tablaSuscripciones">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Cliente</th><th>Celular</th><th>Plataforma</th>
+            <th>Entrega</th><th>Término</th><th>Restante</th><th>Costo</th><th>Ganancia</th><th>Acción</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <footer>© 2025 Axionix Flix 1.0</footer>
+  </div>
+
+  <script>
+    const VALID_USER = 'admin';
+    const VALID_PASS = 'axionix2025';
+    let intervalId;
+
+    function login() {
+      const user = document.getElementById('user').value;
+      const pass = document.getElementById('pass').value;
+      if (user === VALID_USER && pass === VALID_PASS) {
+        document.getElementById('login').classList.add('hidden');
+        document.getElementById('main').classList.remove('hidden');
+        alert(`🎉 Bienvenido, ${user}!`);
+        revisarNotificaciones(); // notifica al instante si procede
+        actualizarCronometros();
+        intervalId = setInterval(() => {
+          revisarNotificaciones();
+          actualizarCronometros();
+        }, 1000);
+      } else {
+        alert('Usuario o contraseña incorrectos');
+      }
+    }
+
+    const suscripciones = [];
+
+    function mostrarCampoPersonalizado() {
+      const sel = document.getElementById('plataforma');
+      const custom = document.getElementById('plataformaCustom');
+      const label = document.getElementById('labelCustom');
+      if (sel.value === 'Otro') {
+        label.style.display = custom.style.display = 'block';
+      } else {
+        label.style.display = custom.style.display = 'none';
+      }
+    }
+
+    function agregarSuscripcion() {
+      const c = document.getElementById('cliente').value.trim();
+      const t = document.getElementById('telefono').value.trim();
+      if (!/^[0-9]{9}$/.test(t)) {
+        alert('El número de celular debe tener exactamente 9 dígitos.');
+        return;
+      }
+      let p = document.getElementById('plataforma').value;
+      if (p === 'Otro') {
+        const custom = document.getElementById('plataformaCustom').value.trim();
+        if (custom) p = custom;
+      }
+      const e = document.getElementById('fechaVenta').value;
+      const f = document.getElementById('fechaVencimiento').value;
+      const cs = document.getElementById('costo').value;
+      const g  = document.getElementById('ganancia').value;
+      if (!c || !t || !e || !f || !cs || !g) {
+        alert('Completa todos los campos');
+        return;
+      }
+      suscripciones.push({
+        c, t, p, e, f, cs, g,
+        notifiedStart: false,
+        notifiedEnd: false
+      });
+      mostrarSuscripciones();
+      // alerta de inicio inmediata
+      alert(`🔔 La suscripción de ${c} inicia ahora (${e.replace('T',' ')}).`);
+      resetFormulario();
+    }
+
+    function mostrarSuscripciones() {
+      const tbody = document.querySelector('#tablaSuscripciones tbody');
+      tbody.innerHTML = '';
+      const now = Date.now();
+      suscripciones.forEach((s, i) => {
+        const tr = document.createElement('tr');
+        // marcar vencida si ya pasó término
+        if (now >= new Date(s.f).getTime()) {
+          tr.classList.add('vencida');
+        }
+        tr.innerHTML = `
+          <td>${i + 1}</td>
+          <td>${s.c}</td>
+          <td>${s.t}</td>
+          <td>${s.p}</td>
+          <td>${s.e.replace('T',' ')}</td>
+          <td>${s.f.replace('T',' ')}</td>
+          <td data-index="${i}"></td>
+          <td>S/. ${parseFloat(s.cs).toFixed(2)}</td>
+          <td>S/. ${parseFloat(s.g).toFixed(2)}</td>
+          <td><button class="btn-eliminar" onclick="eliminar(${i})">Eliminar</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function resetFormulario() {
+      ['cliente','telefono','fechaVenta','fechaVencimiento','costo','ganancia']
+        .forEach(id => document.getElementById(id).value = '');
+      document.getElementById('plataforma').value = 'ChatGPT';
+      document.getElementById('plataformaCustom').value = '';
+      document.getElementById('plataformaCustom').style.display = 'none';
+      document.getElementById('labelCustom').style.display = 'none';
+    }
+
+    function eliminar(i) {
+      suscripciones.splice(i, 1);
+      mostrarSuscripciones();
+    }
+
+    function revisarNotificaciones() {
+      const now = Date.now();
+      suscripciones.forEach(s => {
+        const startTime = new Date(s.e).getTime();
+        const endTime   = new Date(s.f).getTime();
+        if (!s.notifiedStart && now >= startTime) {
+          alert(`🔔 La suscripción de ${s.c} ha comenzado (${s.e.replace('T',' ')}).`);
+          s.notifiedStart = true;
+        }
+        if (!s.notifiedEnd && now >= endTime) {
+          alert(`⚠️ La suscripción de ${s.c} ha vencido (${s.f.replace('T',' ')}).`);
+          s.notifiedEnd = true;
+        }
+      });
+    }
+
+    function actualizarCronometros() {
+      const now = Date.now();
+      document.querySelectorAll('td[data-index]').forEach(td => {
+        const i = parseInt(td.getAttribute('data-index'), 10);
+        const endTime = new Date(suscripciones[i].f).getTime();
+        let diff = endTime - now;
+        if (diff < 0) diff = 0;
+        const d = Math.floor(diff / 86400000);
+        diff %= 86400000;
+        const h = Math.floor(diff / 3600000);
+        diff %= 3600000;
+        const m = Math.floor(diff / 60000);
+        diff %= 60000;
+        const s = Math.floor(diff / 1000);
+        td.textContent = `${d}d ${h}h ${m}m ${s}s`;
+      });
+    }
+  </script>
+</body>
+</html>
